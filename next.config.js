@@ -24,6 +24,14 @@ module.exports = {
         source: '/playground',
         destination: '/en/playground',
       },
+      {
+        source: '/practice',
+        destination: '/en/practice',
+      },
+      {
+        source: '/practice/:level*',
+        destination: '/en/practice/:level*',
+      },
     ]
   },
   async redirects() {
@@ -51,6 +59,16 @@ module.exports = {
       {
         source: '/en/playground',
         destination: '/playground',
+        permanent: true,
+      },
+      {
+        source: '/en/practice',
+        destination: '/practice',
+        permanent: true,
+      },
+      {
+        source: '/en/practice/:level*',
+        destination: '/practice/:level*',
         permanent: true,
       },
     ]

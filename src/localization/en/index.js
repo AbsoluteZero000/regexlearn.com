@@ -4,6 +4,7 @@ import landing from './landing.json';
 import learn from './learn.json';
 import lessons from './lessons.json';
 import regexForSeo from './lessons/regexForSeo.json';
+import practice from './practice.json';
 
 const messages = {
   ...cheatsheet,
@@ -12,6 +13,7 @@ const messages = {
   ...learn,
   ...lessons,
   ...regexForSeo,
+  ...practice,
 };
 
 export default messages;

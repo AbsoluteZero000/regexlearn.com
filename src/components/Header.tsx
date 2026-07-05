@@ -9,11 +9,18 @@ import LanguageSelect from 'src/components/LanguageSelect';
 import packageInfo from 'package.json';
 
 interface Props {
-  page?: 'home' | 'learn' | 'learn-detail' | 'cheatsheet' | 'playground';
+  page?:
+    | 'home'
+    | 'learn'
+    | 'learn-detail'
+    | 'practice'
+    | 'practice-detail'
+    | 'cheatsheet'
+    | 'playground';
 }
 
 const Header = ({ page }: Props) => {
-  const isLearnDetail = page === 'learn-detail';
+  const isDetail = page === 'learn-detail' || page === 'practice-detail';
   const isPlaygroundPage = page === 'playground';
 
   return (
@@ -31,17 +38,20 @@ const Header = ({ page }: Props) => {
             </span>
           )}
         </div>
-        {isLearnDetail && <div id="ProgressArea" className="flex justify-center flex-1" />}
-        <div className="flex flex-1 items-center text-sm justify-end gap-2 sm:gap-4">
-          {!isLearnDetail && (
+        {isDetail && <div id="ProgressArea" className="flex justify-center flex-1" />}
+        <div className="flex flex-1 items-center text-xs sm:text-sm justify-end gap-2 sm:gap-4">
+          {!isDetail && (
             <>
               <IntlLink className="block" navLink href="/[lang]/learn">
                 <FormattedMessage id="general.learn" />
               </IntlLink>
-              <IntlLink className="block" navLink href="/[lang]/cheatsheet">
+              <IntlLink className="block" navLink href="/[lang]/practice">
+                <FormattedMessage id="practice.title" />
+              </IntlLink>
+              <IntlLink className="hidden md:block" navLink href="/[lang]/cheatsheet">
                 <FormattedMessage id="general.cheatsheet" />
               </IntlLink>
-              <IntlLink className="block" navLink href="/[lang]/playground">
+              <IntlLink className="hidden md:block" navLink href="/[lang]/playground">
                 <FormattedMessage id="general.playground" />
               </IntlLink>
             </>

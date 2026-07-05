@@ -8,6 +8,7 @@ import { IntlProvider } from 'react-intl';
 
 import { defaultLocale, locales } from 'src/localization';
 import { useLanguageDirection } from 'src/utils/useLanguageDirection';
+import englishPractice from 'src/localization/en/practice.json';
 
 require('src/migration').migration();
 
@@ -35,7 +36,7 @@ const MyApp = ({ Component, pageProps }: AppProps) => {
 
   return (
     <IntlProvider
-      messages={pageProps.messages}
+      messages={{ ...englishPractice, ...pageProps.messages }}
       locale={pageProps.lang}
       defaultLocale={defaultLocale}
     >

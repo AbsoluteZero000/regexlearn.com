@@ -79,9 +79,11 @@ const PageHome = () => {
       />
       <Section
         title="section.practice.title"
-        description="section.practice.content"
+        description="practice.description"
         image="/Practise.webp"
         imageAltText="section.practice.imageAltText"
+        link="/[lang]/practice"
+        buttonText="practice.start"
       />
       <Section
         title="section.opensource.title"

@@ -43,3 +43,39 @@ export type CheatsheetData = {
   flags: string;
   regex: string;
 };
+
+export type PracticeLevelId = 'beginner' | 'intermediate' | 'advanced';
+
+export type PracticeTestCase = {
+  content: string;
+  expectedMatches: string[];
+};
+
+export type PracticeSolution = {
+  regex: string;
+  flags: string;
+};
+
+export type PracticeChallenge = {
+  id: string;
+  level: PracticeLevelId;
+  title: string;
+  description: string;
+  initialValue?: string;
+  initialFlags?: string;
+  testCases: PracticeTestCase[];
+  hints: string[];
+  solution: PracticeSolution;
+};
+
+export type PracticeLevel = {
+  id: PracticeLevelId;
+  title: string;
+  description: string;
+};
+
+export type PracticeProgress = {
+  version: 1;
+  completed: string[];
+  currentByLevel: Partial<Record<PracticeLevelId, string>>;
+};

@@ -18,8 +18,8 @@ platform ensure a smooth learning experience that will have you writing regex li
   quick reference.
 - **🔬 Playground:** Freely experiment and test your regex patterns in a dedicated sandbox
   environment without limitations.
-- **💡 Practice:** Coming soon - Challenge yourself with a wide range of practical exercises to
-  refine and enhance your regex skills.
+- **💡 Practice:** Challenge yourself with beginner, intermediate, and advanced practical exercises
+  to refine and enhance your regex skills.
 
 <br>
 
