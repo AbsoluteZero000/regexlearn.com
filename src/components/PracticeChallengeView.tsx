@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
 import { FormattedMessage, useIntl } from 'react-intl';
 import confetti from 'canvas-confetti';
 import cx from 'clsx';
@@ -12,6 +13,8 @@ import HighlightedText from 'src/components/HighlightedText';
 import Icon from 'src/components/Icon';
 import IntlLink from 'src/components/IntlLink';
 import Progress from 'src/components/Progress';
+import { practiceLevels } from 'src/data/practice';
+import { defaultLocale } from 'src/localization';
 import {
   PracticeChallenge,
   PracticeLevel,
@@ -25,6 +28,7 @@ import {
   setPracticeProgress,
 } from 'src/utils/practiceProgress';
 import validatePracticeSolution from 'src/utils/practiceValidation';
+import getIntlPath from 'src/utils/getIntlPath';
 
 interface Props {
   level: PracticeLevel;
@@ -65,6 +69,7 @@ const renderMatches = (content: string, source: string, flags: string) => {
 
 const PracticeChallengeView = ({ level, challenges }: Props) => {
   const { formatMessage } = useIntl();
+  const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [mounted, setMounted] = useState(false);
   const [progress, setProgressState] = useState<PracticeProgress>(null);
@@ -84,6 +89,11 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
   const passed = hasEdited && validation.passed;
   const completedCount =
     progress?.completed.filter(id => challenges.some(challenge => challenge.id === id)).length || 0;
+  const levelIsComplete =
+    completedCount === challenges.length ||
+    (passed && !isCompleted && completedCount === challenges.length - 1);
+  const levelIndex = practiceLevels.findIndex(item => item.id === level.id);
+  const nextLevel = practiceLevels[levelIndex + 1];
 
   useEffect(() => {
     const stored = getPracticeProgress();
@@ -125,10 +135,24 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
   }, [challenge.id, challenges.length, index, isCompleted, passed, progress]);
 
   const goTo = (nextIndex: number) => {
-    if (nextIndex >= 0 && nextIndex < challenges.length) setIndex(nextIndex);
+    if (nextIndex >= 0 && nextIndex < challenges.length) {
+      setIndex(nextIndex);
+      return;
+    }
+
+    if (nextIndex === challenges.length && nextLevel && levelIsComplete) {
+      const lang = router.query.lang || defaultLocale;
+      router.push(
+        getIntlPath({
+          href: '/[lang]/practice/[level]',
+          lang,
+          query: { level: nextLevel.id },
+        }),
+      );
+    }
   };
 
-  useEventListener('keypress', event => {
+  useEventListener('keypress', (event: KeyboardEvent) => {
     if (event.ctrlKey || event.key !== 'Enter') return;
 
     event.preventDefault();
@@ -177,25 +201,44 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
           <h2 className="font-bold mb-4">
             <FormattedMessage id={level.title} />
           </h2>
-          <div className="space-y-1">
+          <div>
             {challenges.map((item, challengeIndex) => (
-              <button
+              <div
                 key={item.id}
-                onClick={() => goTo(challengeIndex)}
                 className={cx(
-                  'w-full flex text-left items-center gap-2 rounded-md px-2 py-2 text-xs',
-                  challengeIndex === index
-                    ? 'bg-regreen-600 text-white'
-                    : 'text-neutral-400 hover:bg-neutral-700 hover:text-white',
+                  'relative flex items-center text-xs',
+                  challengeIndex !== challenges.length - 1 &&
+                    "pb-6 after:content-[''] after:absolute after:left-[7px] after:top-6 after:h-8 after:w-[2px] after:rounded-md after:bg-neutral-700",
                 )}
               >
                 <Icon
-                  icon={progress?.completed.includes(item.id) ? 'check' : 'document-duplicate'}
-                  size={15}
-                  className={progress?.completed.includes(item.id) ? 'text-regreen-400' : ''}
+                  icon={
+                    challengeIndex === index
+                      ? 'play'
+                      : progress?.completed.includes(item.id)
+                      ? 'check'
+                      : 'document-duplicate'
+                  }
+                  size={16}
+                  className={cx(
+                    'relative z-10 mr-3 shrink-0',
+                    challengeIndex === index || progress?.completed.includes(item.id)
+                      ? 'text-regreen-400'
+                      : 'text-neutral-500',
+                  )}
                 />
-                <span className="truncate">{formatMessage({ id: item.title })}</span>
-              </button>
+                <button
+                  onClick={() => goTo(challengeIndex)}
+                  className={cx(
+                    'truncate text-left transition-colors',
+                    challengeIndex === index
+                      ? 'text-neutral-50'
+                      : 'text-neutral-400 hover:text-neutral-100',
+                  )}
+                >
+                  {formatMessage({ id: item.title })}
+                </button>
+              </div>
             ))}
           </div>
           <button
@@ -354,9 +397,13 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
               <FormattedMessage id="practice.backToLevels" />
             </IntlLink>
             <div className="w-1/3 text-right">
-              {index < challenges.length - 1 && (
+              {(index < challenges.length - 1 || (nextLevel && levelIsComplete)) && (
                 <button className="inline-flex items-center hover:text-regreen-400" onClick={() => goTo(index + 1)}>
-                  <FormattedMessage id="general.next" />
+                  {index < challenges.length - 1 ? (
+                    <FormattedMessage id="general.next" />
+                  ) : (
+                    <FormattedMessage id={nextLevel.title} />
+                  )}
                   <Icon icon="arrow-right" size={20} className="ml-1 rtl:rotate-180" />
                 </button>
               )}
