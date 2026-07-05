@@ -29,6 +29,7 @@ import {
 } from 'src/utils/practiceProgress';
 import validatePracticeSolution from 'src/utils/practiceValidation';
 import getIntlPath from 'src/utils/getIntlPath';
+import { useLanguageDirection } from 'src/utils/useLanguageDirection';
 
 interface Props {
   level: PracticeLevel;
@@ -71,7 +72,9 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
   const { formatMessage } = useIntl();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
+  const pathRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [pathOpen, setPathOpen] = useState(false);
   const [progress, setProgressState] = useState<PracticeProgress>(null);
   const [index, setIndex] = useState(0);
   const [regex, setRegex] = useState('');
@@ -94,6 +97,12 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
     (passed && !isCompleted && completedCount === challenges.length - 1);
   const levelIndex = practiceLevels.findIndex(item => item.id === level.id);
   const nextLevel = practiceLevels[levelIndex + 1];
+  const direction = useLanguageDirection();
+  const pathOpenPosition = direction === 'rtl' ? 'left-0' : 'right-0';
+  const pathClosedPosition = direction === 'rtl' ? '-left-[244px]' : '-right-[244px]';
+  const toggleOpenPosition = direction === 'rtl' ? '-left-10' : '-right-10';
+  const toggleClosedPosition = direction === 'rtl' ? 'left-[204px]' : 'right-[204px]';
+  const toggleIcon = direction === 'rtl' ? 'arrow-right' : 'arrow-left';
 
   useEffect(() => {
     const stored = getPracticeProgress();
@@ -120,6 +129,14 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
     // The progress object is intentionally excluded to avoid a persistence loop.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [challenge.id, level.id]);
+
+  useEffect(() => {
+    const activeItem = pathRef.current?.querySelectorAll('.practice-step-item')[index] as
+      | HTMLDivElement
+      | undefined;
+    if (!activeItem || !pathRef.current) return;
+    pathRef.current.scrollTop = activeItem.offsetTop - 145;
+  }, [index]);
 
   useEffect(() => {
     if (!passed || !progress || isCompleted) return;
@@ -196,59 +213,82 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
     <div className="px-3 flex flex-col flex-1 min-h-screen relative overflow-x-hidden">
       <Header page="practice-detail" />
 
-      <div className="flex flex-1 w-full max-w-6xl mx-auto gap-7 pb-4">
-        <aside className="hidden lg:block w-64 shrink-0 my-auto max-h-[520px] overflow-y-auto bg-neutral-800/60 rounded-xl p-4">
-          <h2 className="font-bold mb-4">
-            <FormattedMessage id={level.title} />
-          </h2>
-          <div>
-            {challenges.map((item, challengeIndex) => (
-              <div
-                key={item.id}
+      <div
+        className={cx(
+          'hidden lg:block text-xs top-[50%] -translate-y-[50%] absolute z-10 transition-all select-none',
+          pathOpen ? pathOpenPosition : pathClosedPosition,
+        )}
+      >
+        <div
+          ref={pathRef}
+          className="hidden-scrollbar scroll-smooth pl-5 bg-[#282c34] rounded-2xl shadow-2xl shadow-[#282c34] relative w-56 overflow-y-scroll overflow-x-hidden py-10 h-[320px]"
+        >
+          <button
+            onClick={() => setPathOpen(open => !open)}
+            aria-label={pathOpen ? 'Close challenge path' : 'Open challenge path'}
+            className={cx(
+              direction === 'rtl' ? 'translate-x-[50%]' : '-translate-x-[50%]',
+              'w-10 h-10 cursor-pointer rounded-full flex fixed top-[50%] transition-all duration-50',
+              pathOpen
+                ? `${toggleOpenPosition} bg-neutral-600/40`
+                : `${toggleClosedPosition} bg-emerald-600`,
+            )}
+          >
+            <Icon
+              icon={toggleIcon}
+              size={15}
+              className={cx(
+                direction === 'rtl' ? 'ml-auto mr-1' : 'mr-auto ml-1',
+                'my-auto text-neutral-100',
+                pathOpen ? 'rotate-180' : 'rotate-0',
+              )}
+            />
+          </button>
+          <div className="flex h-10 w-72 bg-gradient-to-b pointer-events-none from-[#282c34] z-20 to-neutral-50/0 fixed top-0" />
+          <div className="flex h-10 w-72 bg-gradient-to-t pointer-events-none from-[#282c34] z-20 to-neutral-50/0 fixed bottom-0" />
+          {challenges.map((item, challengeIndex) => (
+            <div
+              key={item.id}
+              className={cx(
+                'practice-step-item relative truncate max-w-[80%] flex flex-row-reverse items-center',
+                challengeIndex !== challenges.length - 1 &&
+                  "pb-6 after:content-[''] after:block after:w-[2px] after:h-8 after:bg-neutral-700 after:rounded-md after:mx-[7px] after:top-8 after:absolute",
+              )}
+            >
+              <Icon
+                icon={
+                  challengeIndex === index
+                    ? 'play'
+                    : progress?.completed.includes(item.id)
+                    ? 'check'
+                    : 'document-duplicate'
+                }
+                size={16}
                 className={cx(
-                  'relative flex items-center text-xs',
-                  challengeIndex !== challenges.length - 1 &&
-                    "pb-6 after:content-[''] after:absolute after:left-[7px] after:top-6 after:h-8 after:w-[2px] after:rounded-md after:bg-neutral-700",
+                  direction === 'ltr' ? 'ml-2' : 'mr-2',
+                  'shrink-0',
+                  challengeIndex === index || progress?.completed.includes(item.id)
+                    ? 'text-regreen-400'
+                    : 'text-neutral-500',
+                )}
+              />
+              <button
+                onClick={() => goTo(challengeIndex)}
+                className={cx(
+                  'truncate py-2 transition-all cursor-pointer',
+                  challengeIndex === index
+                    ? 'text-neutral-50'
+                    : 'text-neutral-400 hover:text-neutral-100',
                 )}
               >
-                <Icon
-                  icon={
-                    challengeIndex === index
-                      ? 'play'
-                      : progress?.completed.includes(item.id)
-                      ? 'check'
-                      : 'document-duplicate'
-                  }
-                  size={16}
-                  className={cx(
-                    'relative z-10 mr-3 shrink-0',
-                    challengeIndex === index || progress?.completed.includes(item.id)
-                      ? 'text-regreen-400'
-                      : 'text-neutral-500',
-                  )}
-                />
-                <button
-                  onClick={() => goTo(challengeIndex)}
-                  className={cx(
-                    'truncate text-left transition-colors',
-                    challengeIndex === index
-                      ? 'text-neutral-50'
-                      : 'text-neutral-400 hover:text-neutral-100',
-                  )}
-                >
-                  {formatMessage({ id: item.title })}
-                </button>
-              </div>
-            ))}
-          </div>
-          <button
-            className="text-xs text-neutral-500 hover:text-red-400 mt-5"
-            onClick={handleReset}
-          >
-            <FormattedMessage id="practice.reset" />
-          </button>
-        </aside>
+                {formatMessage({ id: item.title })}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
 
+      <div className="flex flex-1 w-full max-w-[800px] mx-auto pb-4">
         <main className="flex flex-col flex-1 justify-center max-w-[800px] mx-auto min-w-0">
           <div className="lg:hidden flex gap-2 overflow-x-auto pb-3 mb-3">
             {challenges.map((item, challengeIndex) => (
@@ -390,12 +430,20 @@ const PracticeChallengeView = ({ level, challenges }: Props) => {
                 </button>
               )}
             </div>
-            <IntlLink
-              href="/[lang]/practice"
-              className="text-xs text-neutral-500 hover:text-neutral-200 text-center"
-            >
-              <FormattedMessage id="practice.backToLevels" />
-            </IntlLink>
+            <div className="flex flex-col items-center gap-1">
+              <IntlLink
+                href="/[lang]/practice"
+                className="text-xs text-neutral-500 hover:text-neutral-200 text-center"
+              >
+                <FormattedMessage id="practice.backToLevels" />
+              </IntlLink>
+              <button
+                className="text-[10px] text-neutral-600 hover:text-red-400"
+                onClick={handleReset}
+              >
+                <FormattedMessage id="practice.reset" />
+              </button>
+            </div>
             <div className="w-1/3 text-right">
               {(index < challenges.length - 1 || (nextLevel && levelIsComplete)) && (
                 <button className="inline-flex items-center hover:text-regreen-400" onClick={() => goTo(index + 1)}>

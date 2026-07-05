@@ -14,10 +14,17 @@ interface Props {
 const PracticeLevelCard = ({ level, completed, total }: Props) => {
   const { formatMessage } = useIntl();
   const hasProgress = completed > 0;
+  const levelColors = {
+    beginner: 'bg-[#324A34]/80 hover:bg-[#324A34]',
+    intermediate: 'bg-[#af6b21]/80 hover:bg-[#af6b21]',
+    advanced: 'bg-[#51406f]/80 hover:bg-[#51406f]',
+  };
 
   return (
     <IntlLink href="/[lang]/practice/[level]" query={{ level: level.id }}>
-      <div className="bg-[url(/images/noise.png)] bg-[#324A34]/80 hover:bg-[#324A34] relative bg-repeat bg-contain transition-all duration-300 w-full min-h-[190px] rounded-xl py-4 px-5 flex flex-col shadow-xl hover:shadow-2xl select-none">
+      <div
+        className={`bg-[url(/images/noise.png)] ${levelColors[level.id]} relative bg-repeat bg-contain transition-all duration-300 w-full min-h-[190px] rounded-xl py-4 px-5 flex flex-col shadow-xl hover:shadow-2xl select-none`}
+      >
         <h2 className="text-xl font-bold">
           <FormattedMessage id={level.title} />
         </h2>
