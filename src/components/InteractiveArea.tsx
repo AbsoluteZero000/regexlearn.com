@@ -68,6 +68,12 @@ const InteractiveArea = ({ isShow, setIsOpenModal }: Props) => {
       return;
     }
 
+    // Read-only steps cannot rely on focus/change events to render their
+    // pre-filled regex result.
+    if (data.readOnly && data.initialValue) {
+      applyRegex(data.initialValue, data.initialFlags || '');
+    }
+
     if (step === lessonData.length - 1) {
       confetti({
         particleCount: 400,
